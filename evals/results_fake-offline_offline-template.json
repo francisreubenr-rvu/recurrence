@@ -4,7 +4,8 @@
     "recall_hit_off": 0.0,
     "recall_hit_on": 1.0,
     "answer_cites_off": 0.0,
-    "answer_cites_on": 1.0
+    "answer_cites_on": 1.0,
+    "advice_in_top_memories": 0.0
   },
   "rows": [
     {
@@ -16,7 +17,9 @@
       "answer_cites_off": false,
       "recall_hit_off": false,
       "answer_cites_on": true,
-      "recall_hit_on": true
+      "recall_hit_on": true,
+      "memories_on": 8,
+      "advice_in_memories_on": 0
     },
     {
       "id": "DEMO-2",
@@ -26,7 +29,9 @@
       "answer_cites_off": false,
       "recall_hit_off": false,
       "answer_cites_on": true,
-      "recall_hit_on": true
+      "recall_hit_on": true,
+      "memories_on": 8,
+      "advice_in_memories_on": 0
     },
     {
       "id": "DEMO-3",
@@ -36,7 +41,9 @@
       "answer_cites_off": false,
       "recall_hit_off": false,
       "answer_cites_on": true,
-      "recall_hit_on": true
+      "recall_hit_on": true,
+      "memories_on": 5,
+      "advice_in_memories_on": 0
     },
     {
       "id": "DEMO-4",
@@ -46,7 +53,9 @@
       "answer_cites_off": false,
       "recall_hit_off": false,
       "answer_cites_on": true,
-      "recall_hit_on": true
+      "recall_hit_on": true,
+      "memories_on": 8,
+      "advice_in_memories_on": 0
     },
     {
       "id": "DEMO-5",
@@ -56,12 +65,14 @@
       "answer_cites_off": false,
       "recall_hit_off": false,
       "answer_cites_on": true,
-      "recall_hit_on": true
+      "recall_hit_on": true,
+      "memories_on": 8,
+      "advice_in_memories_on": 0
     }
   ],
   "backend": {
     "memory": "fake-offline",
     "llm": "offline-template"
   },
-  "ran_at": "2026-11-09T00:01:47+00:00"
+  "ran_at": "2026-11-09T09:07:21+05:30"
 }

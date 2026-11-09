@@ -90,6 +90,23 @@ def test_recall_signature_and_normalisation(spec_client):
     assert hits[1].tags == [] and hits[1].metadata == {} and hits[1].occurred_at is None
 
 
+def test_recall_forwards_tag_groups(spec_client):
+    spec_client.recall.return_value = SimpleNamespace(results=[])
+    groups = [{"not": {"tags": ["kind:advice"], "match": "any_strict"}}]
+    HindsightMemory("http://x", "b", client=spec_client).recall("q", tag_groups=groups, max_tokens=2500)
+    kw = spec_client.recall.call_args.kwargs
+    assert kw["tag_groups"] == groups
+    assert kw["tags"] is None and kw["tags_match"] == "any"
+
+
+def test_tag_groups_rejected_together_with_tags(spec_client):
+    with pytest.raises(ValueError):
+        HindsightMemory("http://x", "b", client=spec_client).recall(
+            "q", tags=["kind:advice"], tag_groups=[{"tags": ["kind:advice"], "match": "any"}]
+        )
+    spec_client.recall.assert_not_called()
+
+
 def test_reflect_signature(spec_client):
     spec_client.reflect.return_value = SimpleNamespace(text="pattern: ledger deploys")
     out = HindsightMemory("http://x", "b", client=spec_client).reflect("why?", tags=["service:ledger-svc"])

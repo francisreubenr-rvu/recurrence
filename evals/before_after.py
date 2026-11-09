@@ -6,6 +6,8 @@
 Metrics per demo alert (data/incidents.json -> demo_alerts):
   recall_hit  - an expected incident ID appears in the recalled memories (memory ON only)
   answer_cites - an expected incident ID appears in the answer text
+  advice_in_top_memories - share of recalled memories that are the agent's own past advice
+                           (memory ON only); must be 0.0, advice belongs in prior_advice
 Writes evals/results_<memory>_<llm>.json. Only quote numbers from a LIVE run publicly.
 """
 from __future__ import annotations
@@ -31,12 +33,21 @@ def run(agent: RecurrenceAgent, alerts: list[dict]) -> dict:
             key = "on" if mode else "off"
             row[f"answer_cites_{key}"] = any(i in out["answer"] for i in a["expected_incident_ids"])
             row[f"recall_hit_{key}"] = any(i in recalled for i in a["expected_incident_ids"])
+            if mode:
+                row["memories_on"] = len(out["memories"])
+                row["advice_in_memories_on"] = sum(
+                    1 for m in out["memories"] if (m.get("metadata") or {}).get("kind") == "advice"
+                )
         rows.append(row)
     n = len(rows)
     summary = {
         k: sum(r[k] for r in rows) / n
         for k in ("recall_hit_off", "recall_hit_on", "answer_cites_off", "answer_cites_on")
     }
+    recalled_total = sum(r["memories_on"] for r in rows)
+    summary["advice_in_top_memories"] = (
+        sum(r["advice_in_memories_on"] for r in rows) / recalled_total if recalled_total else 0.0
+    )
     return {"n": n, "summary": summary, "rows": rows}
 
 

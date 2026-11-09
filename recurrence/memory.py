@@ -84,6 +84,7 @@ class MemoryBackend(Protocol):
         budget: str = "mid",
         query_timestamp: str | None = None,
         tags_match: str = "any",
+        tag_groups: list[dict] | None = None,
     ) -> list[MemoryHit]: ...
 
     def reflect(self, query: str, *, context: str | None = None, tags: list[str] | None = None) -> str: ...
@@ -132,7 +133,19 @@ class HindsightMemory:
         # items: dicts with content (+ optional timestamp, context, metadata, document_id, tags)
         self.client.retain_batch(bank_id=self.bank_id, items=items)
 
-    def recall(self, query, *, tags=None, max_tokens=2048, budget="mid", query_timestamp=None, tags_match="any"):
+    def recall(
+        self,
+        query,
+        *,
+        tags=None,
+        max_tokens=2048,
+        budget="mid",
+        query_timestamp=None,
+        tags_match="any",
+        tag_groups=None,
+    ):
+        if tags and tag_groups:
+            raise ValueError("pass either tags or tag_groups, not both: the server rejects that combination")
         # query_timestamp anchors relative time ("last week") to the page's time, which
         # matters when the demo replays a fixed "now".
         resp = self.client.recall(
@@ -142,6 +155,7 @@ class HindsightMemory:
             budget=budget,
             tags=tags,
             tags_match=tags_match,
+            tag_groups=tag_groups,
             query_timestamp=query_timestamp,
         )
         hits: list[MemoryHit] = []
@@ -174,6 +188,44 @@ _STOP = set("the a an and or of to in on for is was with at by from as it this t
 
 def _tokens(text: str) -> list[str]:
     return [t.strip(".-") for t in _WORD.findall(text.lower()) if t not in _STOP]
+
+
+TAG_MATCH_MODES = ("any", "all", "any_strict", "all_strict", "exact")
+
+
+def match_tag_group(item_tags: list[str], group: dict[str, Any]) -> bool:
+    """Evaluate one tag group against one item's tags, mirroring the Hindsight server.
+
+    Group forms: ``{"tags": [...], "match": mode}``, ``{"and": [...]}``, ``{"or": [...]}``,
+    ``{"not": <group>}``. A top-level list of groups is AND-ed by the caller.
+
+    Modes follow the server: ``any`` (OR) and ``all`` (AND) also admit an item with no tags
+    at all; ``any_strict`` / ``all_strict`` do not; ``exact`` is set equality and excludes
+    untagged items.
+    """
+    if "not" in group:
+        return not match_tag_group(item_tags, group["not"])
+    if "and" in group:
+        return all(match_tag_group(item_tags, g) for g in group["and"])
+    if "or" in group:
+        return any(match_tag_group(item_tags, g) for g in group["or"])
+    wanted = set(group.get("tags") or [])
+    mode = group.get("match") or "any"
+    if mode not in TAG_MATCH_MODES:
+        raise ValueError(f"unknown tag match mode: {mode!r}")
+    have = set(item_tags)
+    if mode == "exact":
+        return bool(have) and have == wanted
+    if not have:
+        return not mode.endswith("_strict")
+    if mode.startswith("all"):
+        return wanted <= have
+    return bool(wanted & have)
+
+
+def _tag_groups_for(tags: list[str] | None, tags_match: str) -> list[dict[str, Any]] | None:
+    """Express a flat tag filter as a group list so both forms share one evaluator."""
+    return [{"tags": list(tags), "match": tags_match}] if tags else None
 
 
 class FakeMemory:
@@ -216,11 +268,26 @@ class FakeMemory:
                 it.get("document_id"), it.get("metadata"),
             )
 
-    def recall(self, query, *, tags=None, max_tokens=2048, budget="mid", query_timestamp=None, tags_match="any"):
-        self.calls.append(("recall", {"query": query, "tags": tags, "tags_match": tags_match}))
+    def recall(
+        self,
+        query,
+        *,
+        tags=None,
+        max_tokens=2048,
+        budget="mid",
+        query_timestamp=None,
+        tags_match="any",
+        tag_groups=None,
+    ):
+        if tags and tag_groups:
+            raise ValueError("pass either tags or tag_groups, not both: the server rejects that combination")
+        self.calls.append(
+            ("recall", {"query": query, "tags": tags, "tags_match": tags_match, "tag_groups": tag_groups})
+        )
         q = set(_tokens(query))
         if not q:
             return []
+        groups = tag_groups if tag_groups is not None else _tag_groups_for(tags, tags_match)
         n = max(len(self.items), 1)
         df: dict[str, int] = {}
         for it in self.items:
@@ -228,11 +295,8 @@ class FakeMemory:
                 df[t] = df.get(t, 0) + 1
         scored = []
         for it in self.items:
-            if tags:
-                if tags_match.startswith("all") and not set(tags) <= set(it["tags"]):
-                    continue
-                if not set(tags) & set(it["tags"]):
-                    continue
+            if groups and not all(match_tag_group(it["tags"], g) for g in groups):
+                continue
             toks = set(_tokens(it["content"]))
             score = sum(math.log(1 + n / df.get(t, 1)) for t in q & toks)
             if score > 0:
@@ -275,6 +339,8 @@ def days_ago(iso: str | None, now: datetime) -> int | None:
         dt = datetime.fromisoformat(str(iso).replace("Z", "+00:00"))
         if dt.tzinfo is None and now.tzinfo is not None:
             dt = dt.replace(tzinfo=now.tzinfo)
-        return (now - dt).days
+        # Writes are stamped with server time, so a replayed "now" can sit behind a fresh
+        # memory. Showing "-6 days ago" would be nonsense: call anything that recent "today".
+        return max(0, (now - dt).days)
     except Exception:
         return None

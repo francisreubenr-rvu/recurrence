@@ -4,7 +4,9 @@ Backends: FakeMemory (keyword overlap, OFFLINE/TEST-ONLY, not Hindsight) + Offli
 These outputs only show that the code paths run end to end. No Hindsight server and no Groq model were called.
 Do not quote any number below as a result. Only a live run against Hindsight + Groq produces real numbers.
 Note: the eval and learning curve below score the template, which copies incident IDs from recalled text, so 1.0 is expected and meaningless.
-Generated: 2026-11-09T00:01:47+00:00   Python 3.12.15
+Note: every memory write is stamped with server time, so the learning curve's simulated dates (2026-10-20 onwards)
+no longer show up as "N days ago": writes made during this run are all stamped today.
+Generated: 2026-11-09T09:06:06+05:30   Python 3.12.14
 
 $ RECURRENCE_OFFLINE=1 python -m recurrence.seed --offline
 Retained 31 memories into bank 'recurrence-tamarind-sre' via backend 'fake-offline'.
@@ -27,39 +29,38 @@ Outcome retained.
 Engineer taught a preference -> retained.
 
 ===== Interaction 3 · 2026-10-28T20:15:00+05:30 =====
-recalled 3 memories, 1 preferences
-  - (8 days ago) On 2026-10-20T19:50+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
-  - (8 days ago) Incident INC-LIVE-10201950 on payments-api, 2026-10-20T19:50+05:30, on-call Arjun Mehta: 502s during evening p
-  - (8 days ago) During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api
+recalled 2 memories, 1 preferences
+  - (0 days ago) Incident INC-LIVE-1109090556-7b on payments-api, 2026-11-09T09:05+05:30, on-call Arjun Mehta: 502s during even
+  - (0 days ago) During INC-LIVE-1109090556-7b on payments-api this did NOT work and should not be repeated: restarting payment
 ANSWER:
 [offline template, no LLM]
-This looks like a repeat of INC-LIVE-10201950.
+This looks like a repeat of INC-LIVE-1109090556.
 Step by step, with a check after each step (per your preference).
-Do NOT repeat: During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
+Do NOT repeat: During INC-LIVE-1109090556-7b on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
 Outcome retained.
 
 ===== Interaction 4 · 2026-11-03T09:30:00+05:30 =====
-recalled 5 memories, 1 preferences
-  - (13 days ago) On 2026-10-20T19:50+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
-  - (13 days ago) Incident INC-LIVE-10201950 on payments-api, 2026-10-20T19:50+05:30, on-call Arjun Mehta: 502s during evening p
-  - (13 days ago) During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api
+recalled 3 memories, 1 preferences
+  - (0 days ago) Incident INC-LIVE-1109090556-7b on payments-api, 2026-11-09T09:05+05:30, on-call Arjun Mehta: 502s during even
+  - (0 days ago) During INC-LIVE-1109090556-7b on payments-api this did NOT work and should not be repeated: restarting payment
+  - (0 days ago) Incident INC-LIVE-1109090556-bc on payments-api, 2026-11-09T09:05+05:30, on-call Arjun Mehta: PgBouncer satura
 ANSWER:
 [offline template, no LLM]
-This looks like a repeat of INC-LIVE-10201950, INC-LIVE-10282015.
+This looks like a repeat of INC-LIVE-1109090556.
 Step by step, with a check after each step (per your preference).
-Do NOT repeat: During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
+Do NOT repeat: During INC-LIVE-1109090556-7b on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
 Outcome retained.
 
 ===== Interaction 5 · 2026-11-09T19:47:00+05:30 =====
-recalled 8 memories, 1 preferences
-  - (19 days ago) On 2026-10-20T19:50+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
-  - (11 days ago) On 2026-10-28T20:15+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
-  - (19 days ago) Incident INC-LIVE-10201950 on payments-api, 2026-10-20T19:50+05:30, on-call Arjun Mehta: 502s during evening p
+recalled 5 memories, 1 preferences
+  - (0 days ago) Incident INC-LIVE-1109090556-7b on payments-api, 2026-11-09T09:05+05:30, on-call Arjun Mehta: 502s during even
+  - (0 days ago) During INC-LIVE-1109090556-7b on payments-api this did NOT work and should not be repeated: restarting payment
+  - (0 days ago) Incident INC-LIVE-1109090556-bc on payments-api, 2026-11-09T09:05+05:30, on-call Arjun Mehta: PgBouncer satura
 ANSWER:
 [offline template, no LLM]
-This looks like a repeat of INC-LIVE-10201950, INC-LIVE-10282015, INC-LIVE-11030930.
+This looks like a repeat of INC-LIVE-1109090556.
 Step by step, with a check after each step (per your preference).
-Do NOT repeat: During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
+Do NOT repeat: During INC-LIVE-1109090556-7b on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
 
 $ RECURRENCE_OFFLINE=1 python -m evals.before_after --offline
 {
@@ -72,11 +73,12 @@ $ RECURRENCE_OFFLINE=1 python -m evals.before_after --offline
     "recall_hit_off": 0.0,
     "recall_hit_on": 1.0,
     "answer_cites_off": 0.0,
-    "answer_cites_on": 1.0
+    "answer_cites_on": 1.0,
+    "advice_in_top_memories": 0.0
   }
 }
-wrote /workspace/work/hwb4/kit/prototype/evals/results_fake-offline_offline-template.json
+wrote evals/results_fake-offline_offline-template.json
 
 $ python -m pytest -q
-...................................                                      [100%]
-35 passed in 2.23s
+.................................................                        [100%]
+49 passed in 1.43s

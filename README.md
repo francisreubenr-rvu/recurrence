@@ -19,7 +19,7 @@ When the page is resolved, the real outcome goes back into memory, so the next p
 - Hindsight docs: [hindsight.vectorize.io](https://hindsight.vectorize.io/)
 - What agent memory is: [vectorize.io/what-is-agent-memory](https://vectorize.io/what-is-agent-memory)
 
-> Status: prototype. The plumbing is tested offline (35 pytest tests, fake memory, template answers).
+> Status: prototype. The plumbing is tested offline (49 pytest tests, fake memory, template answers).
 > **No live Hindsight or Groq call has been verified yet.** See [Limitations](#limitations).
 
 ---
@@ -73,21 +73,35 @@ client.retain(bank_id=BANK, content=f"Recurrence advised {engineer} on a {servic
               timestamp=now.isoformat(), tags=[f"service:{service}", f"engineer:{slug}", "kind:advice"])
 ```
 
-### recall: similar incidents, then this engineer's preferences
+### recall: similar incidents, this engineer's preferences, then prior advice
+
+The agent's own retained advice is deliberately kept out of the incident recall: it is not evidence, and it grows
+without bound, so it would push real postmortems out of the result set. A tag group excludes it, and a separate
+bounded recall fetches it for a clearly labelled, low-trust prompt section.
 
 ```python
 incidents = client.recall(bank_id=BANK, query=f"{service}: {alert}",
-                          max_tokens=2500, budget="mid", tags_match="any",
+                          max_tokens=2500, budget="mid",
+                          # tag_groups only: the server rejects a request carrying both tags and tag_groups
+                          tag_groups=[{"not": {"tags": ["kind:advice"], "match": "any_strict"}}],
                           query_timestamp=now.isoformat())     # "weeks ago" is relative to the page
 
 prefs = client.recall(bank_id=BANK,
                       query=f"How does {engineer} prefer to receive help during incidents?",
                       tags=[f"engineer:{slug}", "kind:preference"], tags_match="all_strict",
                       max_tokens=600, query_timestamp=now.isoformat())
+
+prior = client.recall(bank_id=BANK, query=f"What did Recurrence previously advise for {service} pages?",
+                      tags=[f"service:{service}", "kind:advice"], tags_match="all_strict",
+                      max_tokens=500, budget="low", query_timestamp=now.isoformat())
 ```
 
-Both result lists go into the system prompt with a "N days ago" label. The model can also call `recall_memory`
-(scoped by `service:` tag) as a tool when it wants more.
+All three lists go into the system prompt with a label naming the kind and the incident: `[INCIDENT INC-2087, 24 days
+ago]`, `[DEAD END INC-2087, 24 days ago]`, `[SERVICE service:payments-api]`.
+Incidents and preferences sit under `PAST INCIDENT MEMORIES`; prior advice sits under
+`PRIOR ADVICE (unconfirmed, may have been wrong)`, deduplicated and capped at 3. The API returns it as
+`prior_advice`, separate from `memories`, which is incident-only. The model can also call `recall_memory`
+(scoped by `service:` tag, same advice exclusion) as a tool when it wants more.
 
 ### reflect: patterns across the whole history
 
@@ -114,12 +128,13 @@ flowchart LR
         Bank[("Bank: recurrence-tamarind-sre<br/>incidents · dead ends · preferences · services · advice")]
     end
 
-    Agent -->|"1. recall (similar incidents)"| Bank
+    Agent -->|"1. recall (similar incidents, advice excluded)"| Bank
     Agent -->|"2. recall (engineer prefs, tag-scoped)"| Bank
-    Agent -->|"3. chat + tools"| Groq["Groq<br/>openai/gpt-oss-120b<br/>fallback qwen/qwen3-32b"]
+    Agent -->|"3. recall (prior advice, bounded)"| Bank
+    Agent -->|"4. chat + tools"| Groq["Groq<br/>openai/gpt-oss-120b<br/>fallback qwen/qwen3-32b"]
     Groq -.->|"tool: recall_memory"| Bank
     Groq -.->|"tool: reflect_on_history"| Bank
-    Agent -->|"4. retain (advice given)"| Bank
+    Agent -->|"5. retain (advice given)"| Bank
     UI -->|"POST /api/resolve (root cause, fix, what failed)"| API
     API -->|retain_batch| Bank
     Seed["recurrence/seed.py<br/>data/incidents.json"] -->|create_bank + retain_batch| Bank
@@ -281,9 +296,11 @@ placeholders. See [`content/README_FIRST.md`](content/README_FIRST.md) before pu
   how `tags_match="all_strict"` treats untagged memories, `query_timestamp`) is untested.
 - **The offline eval numbers mean nothing.** The template copies incident IDs from whatever was recalled, so
   "answer cites the right incident" is trivially 1.0 offline. Only quote numbers from a live run.
-- **Retained advice can crowd recall.** Every answer is retained as `kind:advice`. In the offline learning curve,
-  earlier advice ranks above the incidents it quotes. With real Hindsight this may need a `types` filter,
-  a lower weight, or excluding `kind:advice` from the first recall.
+- **Advice no longer crowds incident recall, but server-side tag groups are untested.** Incident recall excludes
+  `kind:advice` with `tag_groups`, and the offline eval reports `advice_in_top_memories: 0.0`. The behavioural
+  guarantee comes from the Hindsight server, which no local test can verify; `FakeMemory` reimplements the
+  documented group semantics, and the mock in `tests/test_memory_sdk.py` only proves the client accepts the
+  parameter.
 - **No auth, no pager integration.** The console is a local demo: no login, no PagerDuty/Opsgenie webhook, no Slack.
   Alerts are pasted in.
 - **Model behaviour unmeasured.** Tool-calling reliability of `openai/gpt-oss-120b` and `qwen/qwen3-32b` on Groq, and
