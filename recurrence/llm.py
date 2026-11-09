@@ -176,9 +176,9 @@ class OfflineLLM:
         mem_block = system.split("PAST INCIDENT MEMORIES", 1)[1]
         # keep recall rank order (first mention wins), not sorted order
         ids = list(dict.fromkeys(re.findall(r"INC-(?:LIVE-)?\d+", mem_block + extra)))
-        # only real dead-end memories, not earlier advice that quoted one
+        # only real dead-end memories, not earlier advice that quoted one; drop the [LABEL] prefix
         dont = [
-            l.split(") ", 1)[-1].strip()
+            re.sub(r"^\s*-\s*\[[^\]]*\]\s*", "", l).strip()
             for l in mem_block.splitlines()
             if "did NOT work" in l and "Recurrence advised" not in l and not l.startswith("Do NOT repeat")
         ]
