@@ -1,0 +1,10 @@
+# Never upload local state or research material to the function bundle.
+.venv/
+.ralph/
+tests/
+evals/
+scripts/
+content/
+video/
+docs/
+*.json.tmp

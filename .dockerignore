@@ -1,0 +1,12 @@
+.venv/
+.ralph/
+.git/
+.pytest_cache/
+content/
+video/
+docs/
+tests/
+evals/
+scripts/
+__pycache__/
+*.pyc
