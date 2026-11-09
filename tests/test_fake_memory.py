@@ -39,3 +39,45 @@ def test_days_ago():
 def test_recall_tags_match_all(seeded_memory):
     hits = seeded_memory.recall("Arjun Mehta incident", tags=["engineer:arjun-mehta", "kind:preference"], tags_match="all")
     assert hits and all({"engineer:arjun-mehta", "kind:preference"} <= set(h.tags) for h in hits)
+
+
+def test_call_log_is_bounded():
+    from recurrence.memory import FakeMemory
+
+    mem = FakeMemory()
+    for i in range(600):
+        mem.retain(f"memory {i}")
+    assert len(mem.calls) <= 500
+    assert len(mem.items) == 600
+
+
+def test_concurrent_retain_and_recall_are_safe():
+    import threading
+
+    from recurrence.memory import FakeMemory
+
+    mem = FakeMemory()
+    errors = []
+
+    def writer(n):
+        try:
+            for i in range(100):
+                mem.retain(f"payments-api HikariPool timeout {n}-{i}", tags=["service:payments-api"])
+        except Exception as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    def reader():
+        try:
+            for _ in range(100):
+                mem.recall("HikariPool timeout")
+        except Exception as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [threading.Thread(target=writer, args=(n,)) for n in range(4)]
+    threads += [threading.Thread(target=reader) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == []
+    assert len(mem.items) == 400

@@ -42,9 +42,13 @@ STEPS = [
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--offline", action="store_true")
+    ap.add_argument("--reuse-bank", action="store_true",
+                    help="append to the existing -curve bank instead of starting from an empty timestamped one")
     args = ap.parse_args()
     s = Settings.from_env(offline=args.offline)
-    s.bank_id = s.bank_id + "-curve"
+    stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    s.bank_id = f"{s.bank_id}-curve" + ("" if args.reuse_bank else f"-{stamp}")
+    print(f"bank: {s.bank_id}")
     agent = RecurrenceAgent(build_memory(s), build_llm(s))
     agent.memory.ensure_bank()
     for i, (when, alert, outcome) in enumerate(STEPS, 1):

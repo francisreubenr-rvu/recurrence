@@ -95,3 +95,9 @@ def test_reflect_signature(spec_client):
     out = HindsightMemory("http://x", "b", client=spec_client).reflect("why?", tags=["service:ledger-svc"])
     assert out == "pattern: ledger deploys"
     assert spec_client.reflect.call_args.kwargs["budget"] == "low"
+
+
+def test_ensure_bank_reraises_auth_failure(spec_client):
+    spec_client.create_bank.side_effect = RuntimeError("401 Unauthorized: bad api key")
+    with pytest.raises(RuntimeError, match="401"):
+        HindsightMemory("http://x", "b", client=spec_client).ensure_bank()

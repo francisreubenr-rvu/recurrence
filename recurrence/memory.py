@@ -19,6 +19,8 @@ from __future__ import annotations
 import logging
 import math
 import re
+import threading
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
@@ -115,7 +117,13 @@ class HindsightMemory:
                 disposition={"skepticism": 4, "literalism": 4, "empathy": 2},
             )
         except Exception as exc:  # bank already exists, or server older than this API
-            log.info("create_bank skipped: %s", exc)
+            text = f"{type(exc).__name__}: {exc}".lower()
+            if "exist" in text or "conflict" in text or "409" in text:
+                log.info("bank %s already exists", self.bank_id)
+                return
+            # Auth, DNS, and server failures must surface: silently continuing
+            # seeds a bank that will never receive data.
+            raise
 
     def retain(self, content, *, context=None, timestamp=None, tags=None, document_id=None, metadata=None):
         self.client.retain(
@@ -187,14 +195,18 @@ class FakeMemory:
 
     def __init__(self) -> None:
         self.items: list[dict[str, Any]] = []
-        self.calls: list[tuple[str, dict[str, Any]]] = []
+        # Bounded call log: a long-lived demo must not grow without limit.
+        self.calls: deque[tuple[str, dict[str, Any]]] = deque(maxlen=500)
+        self._lock = threading.RLock()
 
     def ensure_bank(self) -> None:
-        self.calls.append(("ensure_bank", {}))
+        with self._lock:
+            self.calls.append(("ensure_bank", {}))
 
     def retain(self, content, *, context=None, timestamp=None, tags=None, document_id=None, metadata=None):
-        self.calls.append(("retain", {"content": content, "tags": tags}))
-        self._store(content, context, timestamp, tags, document_id, metadata)
+        with self._lock:
+            self.calls.append(("retain", {"content": content, "tags": tags}))
+            self._store(content, context, timestamp, tags, document_id, metadata)
 
     def _store(self, content, context, timestamp, tags, document_id, metadata):
         self.items.append(
@@ -209,14 +221,19 @@ class FakeMemory:
         )
 
     def retain_many(self, items):
-        self.calls.append(("retain_many", {"n": len(items)}))
-        for it in items:
-            self._store(
-                it["content"], it.get("context"), it.get("timestamp"), it.get("tags"),
-                it.get("document_id"), it.get("metadata"),
-            )
+        with self._lock:
+            self.calls.append(("retain_many", {"n": len(items)}))
+            for it in items:
+                self._store(
+                    it["content"], it.get("context"), it.get("timestamp"), it.get("tags"),
+                    it.get("document_id"), it.get("metadata"),
+                )
 
     def recall(self, query, *, tags=None, max_tokens=2048, budget="mid", query_timestamp=None, tags_match="any"):
+        with self._lock:
+            return self._recall_locked(query, tags, max_tokens, tags_match)
+
+    def _recall_locked(self, query, tags, max_tokens, tags_match):
         self.calls.append(("recall", {"query": query, "tags": tags, "tags_match": tags_match}))
         q = set(_tokens(query))
         if not q:
@@ -261,11 +278,12 @@ class FakeMemory:
         return out
 
     def reflect(self, query, *, context=None, tags=None):
-        self.calls.append(("reflect", {"query": query, "tags": tags}))
-        hits = self.recall(query, tags=tags, max_tokens=1024)
-        if not hits:
-            return "No relevant memories to reflect on."
-        return "[offline reflect stand-in] Related memories: " + " | ".join(h.text[:160] for h in hits[:3])
+        with self._lock:
+            self.calls.append(("reflect", {"query": query, "tags": tags}))
+            hits = self._recall_locked(query, tags, 1024, "any")
+            if not hits:
+                return "No relevant memories to reflect on."
+            return "[offline reflect stand-in] Related memories: " + " | ".join(h.text[:160] for h in hits[:3])
 
 
 def days_ago(iso: str | None, now: datetime) -> int | None:
