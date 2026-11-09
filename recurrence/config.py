@@ -12,6 +12,17 @@ except Exception:  # python-dotenv optional
     pass
 
 
+def _int_env(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or raw.strip() == "":
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
 @dataclass
 class Settings:
     hindsight_url: str
@@ -22,6 +33,11 @@ class Settings:
     model: str
     fallback_model: str
     offline: bool
+    # Writes (resolve, preference) require this token when set. With no token,
+    # writes are allowed only in offline demo mode and refused in live mode.
+    write_token: str | None = None
+    ask_rate_per_min: int = 30
+    trust_proxy: bool = False
 
     @classmethod
     def from_env(cls, offline: bool | None = None) -> "Settings":
@@ -35,7 +51,14 @@ class Settings:
             model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
             fallback_model=os.getenv("GROQ_FALLBACK_MODEL", "qwen/qwen3-32b"),
             offline=off,
+            write_token=os.getenv("RECURRENCE_WRITE_TOKEN") or None,
+            ask_rate_per_min=_int_env("RECURRENCE_ASK_RATE_PER_MIN", 30),
+            trust_proxy=os.getenv("RECURRENCE_TRUST_PROXY", "0") == "1",
         )
+
+    @property
+    def writes_enabled(self) -> bool:
+        return bool(self.write_token) or self.offline
 
 
 def build_memory(s: Settings):

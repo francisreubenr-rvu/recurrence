@@ -189,12 +189,27 @@ docker compose up -d          # API on http://localhost:8888, UI on http://local
 ### No keys at all (plumbing only)
 
 ```bash
-./run.sh test                 # 35 tests, fake memory + template LLM, no network
+./run.sh test                 # full pytest suite, fake memory + template LLM, no network
 ./run.sh offline              # console at http://localhost:8000 with fake memory
 ```
 
 `FakeMemory` and `OfflineLLM` are clearly labelled test stand-ins. Their output is prefixed
 `[offline template, no LLM]` / `[offline reflect stand-in]` and must never be shown as Hindsight or Groq results.
+
+### Write access and rate limits
+
+`POST /api/resolve`, `POST /api/preference` and the advice write inside `POST /api/ask` change the
+memory bank. Three settings control who can write and how hard the model endpoint is hit:
+
+| Variable | Default | Behaviour |
+|---|---|---|
+| `RECURRENCE_WRITE_TOKEN` | unset | When set, write endpoints require an `X-Recurrence-Token` header with this value. |
+| (no token) | | Offline mode allows writes so the local demo works. Live mode refuses them with 503. |
+| `RECURRENCE_ASK_RATE_PER_MIN` | `30` | Per-client sliding window on `/api/ask`. Exceeding it returns 429 with `Retry-After`. |
+| `RECURRENCE_TRUST_PROXY` | `0` | Set to `1` behind a trusted proxy so the rate limit keys on the first `X-Forwarded-For` address. |
+
+Write errors are logged server-side with a request id; the response body carries only a generic
+message and that id, never internal hostnames or SDK text.
 
 ## Seed and run
 
