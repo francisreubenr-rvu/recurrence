@@ -40,6 +40,12 @@
   .empty { color:var(--mute); font-style:italic; }
   details { margin-top:10px; font-size:12.5px; color:var(--mute); } pre { white-space:pre-wrap; }
   .spacer { height:16px; }
+  .banner { margin:14px 28px 0; padding:10px 14px; border-radius:8px; font-size:13px; border:1px solid var(--line); background:#fff9db; color:#5c4a00; }
+  .banner.info { background:#eef6ff; color:#123a63; border-color:#cfe4fb; }
+  .banner.warn { background:#fff4f4; color:#6b1a1a; border-color:#ffc9c9; }
+  .banner[hidden] { display:none; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .note { font-size:12px; color:var(--mute); margin-top:6px; }
 </style>
 </head>
 <body>
@@ -48,6 +54,7 @@
   <span style="flex:1"></span>
   <span id="b-mem" class="badge">memory: …</span><span id="b-llm" class="badge">llm: …</span>
 </header>
+<div id="banner" class="banner" hidden></div>
 <main>
   <section>
     <div class="card">
@@ -80,8 +87,11 @@
       <label>What did NOT work</label><input id="r-dnw" placeholder="restarting pods">
       <div class="spacer"></div>
       <button class="ghost" id="resolve">Retain outcome</button> <span id="r-msg" class="tag"></span>
+      <div id="write-note" class="note"></div>
       <label>Teach a preference</label>
       <div class="row"><input id="pref" placeholder="Give me PromQL, not kubectl"><button class="ghost" id="savepref" style="flex:0 0 auto">Retain</button></div>
+      <label>Write token (only if this deployment requires one)</label>
+      <input id="write-token" type="password" autocomplete="off" placeholder="X-Recurrence-Token">
     </div>
   </section>
   <section>
@@ -92,64 +102,6 @@
     </div>
   </section>
 </main>
-<script>
-const $ = (id) => document.getElementById(id);
-let DEMO = { alerts: [] };
-const esc = (s) => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-
-async function boot() {
-  const h = await (await fetch("/api/health")).json();
-  $("b-mem").textContent = "memory: " + h.memory; $("b-mem").className = "badge " + (h.memory === "hindsight" ? "live" : "off");
-  $("b-llm").textContent = "llm: " + h.llm; $("b-llm").className = "badge " + (h.llm === "groq" ? "live" : "off");
-  DEMO = await (await fetch("/api/demo")).json();
-  $("engineer").innerHTML = DEMO.engineers.map(e => `<option>${esc(e)}</option>`).join("");
-  $("service").innerHTML = DEMO.services.map(s => `<option>${esc(s)}</option>`).join("");
-  $("demo").innerHTML = `<option value="">(type your own)</option>` + DEMO.alerts.map((a,i) => `<option value="${i}">${esc(a.id)} · ${esc(a.label)}</option>`).join("");
-}
-$("demo").onchange = () => {
-  const a = DEMO.alerts[$("demo").value]; if (!a) return;
-  $("alert").value = a.alert; $("engineer").value = a.engineer; $("service").value = a.service;
-};
-$("memory").onchange = () => {
-  $("memlabel").textContent = $("memory").checked ? "Memory ON (Hindsight recall + retain)" : "Memory OFF (stateless LLM)";
-};
-function memCard(m) {
-  const kind = (m.metadata && m.metadata.kind) || m.type || "memory";
-  const id = (m.metadata && m.metadata.incident_id) || m.document_id || "";
-  const ago = m.days_ago == null ? "" : (m.days_ago === 0 ? "today" : `${m.days_ago} days ago`);
-  return `<div class="mem ${esc(kind)}"><div class="meta"><span class="chip">${esc(ago)}</span><span>${esc(kind)}</span><span>${esc(id)}</span></div>${esc(m.text)}</div>`;
-}
-$("ask").onclick = async () => {
-  $("ask").disabled = true; $("answer").textContent = "Thinking…"; $("answer").className = "";
-  const a = DEMO.alerts[$("demo").value];
-  const body = { alert: $("alert").value, engineer: $("engineer").value, service: $("service").value,
-                 memory_on: $("memory").checked, now: a ? a.now : null };
-  try {
-    const r = await fetch("/api/ask", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) });
-    const j = await r.json();
-    if (!r.ok) throw new Error(JSON.stringify(j));
-    $("answer").textContent = j.answer;
-    $("mode").textContent = j.memory_on ? `with memory · ${j.memories.length} recalled` : "no memory";
-    $("mode").className = "badge " + (j.memory_on ? "live" : "off");
-    $("prefs").innerHTML = (j.preferences || []).map(memCard).join("");
-    $("mems").innerHTML = j.memory_on ? (j.memories.map(memCard).join("") || `<div class="empty">Nothing similar in memory yet.</div>`)
-                                     : `<div class="empty">Memory is off. The agent sees only this page.</div>`;
-    $("trace").textContent = JSON.stringify({ tool_trace: j.tool_trace, memory_errors: j.memory_errors, backend: j.backend }, null, 2);
-  } catch (e) { $("answer").textContent = "Error: " + e.message; }
-  $("ask").disabled = false;
-};
-$("resolve").onclick = async () => {
-  const body = { service: $("service").value, engineer: $("engineer").value, summary: $("r-summary").value,
-                 root_cause: $("r-root").value, fix: $("r-fix").value, did_not_work: $("r-dnw").value };
-  const r = await fetch("/api/resolve", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) });
-  $("r-msg").textContent = r.ok ? `retained ${(await r.json()).retained} memories` : "retain failed";
-};
-$("savepref").onclick = async () => {
-  const r = await fetch("/api/preference", { method: "POST", headers: {"Content-Type": "application/json"},
-     body: JSON.stringify({ engineer: $("engineer").value, text: $("pref").value }) });
-  $("r-msg").textContent = r.ok ? "preference retained" : "retain failed";
-};
-boot();
-</script>
+<script src="/static/app.js" defer></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ from pathlib import Path
 os.environ["RECURRENCE_OFFLINE"] = "1"
 os.environ.pop("GROQ_API_KEY", None)
 os.environ.pop("HINDSIGHT_API_KEY", None)
+os.environ.pop("RECURRENCE_WRITE_TOKEN", None)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest  # noqa: E402
