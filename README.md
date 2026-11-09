@@ -211,6 +211,28 @@ memory bank. Three settings control who can write and how hard the model endpoin
 Write errors are logged server-side with a request id; the response body carries only a generic
 message and that id, never internal hostnames or SDK text.
 
+### Ingest pages from Alertmanager or PagerDuty
+
+`POST /api/ingest/alertmanager` and `POST /api/ingest/pagerduty` accept the systems' own webhook
+bodies, normalise every alert into one page shape, dedupe repeats, and optionally triage inline.
+
+| Step | Behaviour |
+|---|---|
+| Normalise | Alertmanager v4 `alerts[]` and PagerDuty v3 `event.data`. Service comes from a `service`/`app`/`job` label, engineer from `engineer`/`oncall`/`owner`. A field the payload did not send is left empty and listed in `missing`. |
+| Dedupe | Keyed on the source fingerprint for `RECURRENCE_INGEST_DEDUPE_SECONDS` (default 300). A repeat is returned with `duplicate: true` and `seen_count`, and is not answered again. |
+| Triage | Add `?answer=true` to run the agent on each new firing page and return the full answer under `answer`. Resolved pages and pages with no engineer are not answered; the latter carry a `skipped` reason. |
+| Limits | Writes use the same `X-Recurrence-Token` gate as the other write routes, and inline triage uses the same `/api/ask` rate limit. Payloads over 256 KB are rejected with 413. |
+
+```bash
+curl -X POST "$BASE/api/ingest/alertmanager?answer=true" \
+  -H "Content-Type: application/json" \
+  -H "X-Recurrence-Token: $RECURRENCE_WRITE_TOKEN" \
+  -d @alertmanager-webhook.json
+```
+
+Alertmanager side: add a `webhook_configs` receiver with `url: $BASE/api/ingest/alertmanager`.
+The token header can be set with `http_config.authorization`.
+
 ## Seed and run
 
 ```bash
