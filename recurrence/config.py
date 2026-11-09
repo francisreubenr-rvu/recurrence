@@ -38,6 +38,7 @@ class Settings:
     write_token: str | None = None
     ask_rate_per_min: int = 30
     trust_proxy: bool = False
+    ingest_dedupe_seconds: int = 300
 
     @classmethod
     def from_env(cls, offline: bool | None = None) -> "Settings":
@@ -54,6 +55,7 @@ class Settings:
             write_token=os.getenv("RECURRENCE_WRITE_TOKEN") or None,
             ask_rate_per_min=_int_env("RECURRENCE_ASK_RATE_PER_MIN", 30),
             trust_proxy=os.getenv("RECURRENCE_TRUST_PROXY", "0") == "1",
+            ingest_dedupe_seconds=_int_env("RECURRENCE_INGEST_DEDUPE_SECONDS", 300),
         )
 
     @property

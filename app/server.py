@@ -21,11 +21,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from recurrence.agent import RecurrenceAgent
 from recurrence.config import Settings, build_llm, build_memory
+from recurrence.ingest import NORMALIZERS, DedupeStore, IngestError
 from recurrence.seed import load_data, seed
 
 log = logging.getLogger("recurrence.server")
 
 STATIC = Path(__file__).parent / "static"
+
+# A real Alertmanager batch is a few KB; anything this large is not a webhook.
+MAX_INGEST_BYTES = 256 * 1024
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -126,6 +130,7 @@ def create_app(agent: RecurrenceAgent | None = None, settings: Settings | None =
     app.state.agent = agent
     app.state.settings = settings
     app.state.ask_limiter = RateLimiter(settings.ask_rate_per_min)
+    app.state.ingest_dedupe = DedupeStore(settings.ingest_dedupe_seconds)
     data = load_data()
 
     def _now(s: str | None) -> datetime:
@@ -209,6 +214,55 @@ def create_app(agent: RecurrenceAgent | None = None, settings: Settings | None =
             return {"answer": agent.patterns(body.question)}
         except Exception as exc:
             raise _fail(502, "reflect failed", exc)
+
+    @app.post("/api/ingest/{source}")
+    def ingest(source: str, payload: dict, request: Request, answer: bool = False):
+        """Accept a paging-system webhook, normalise it, dedupe it, optionally triage it.
+
+        Point an Alertmanager webhook receiver or a PagerDuty v3 subscription at
+        this route. The response always contains the normalised pages so a caller
+        that only wants ingestion is served too.
+        """
+        normalizer = NORMALIZERS.get(source)
+        if normalizer is None:
+            raise HTTPException(404, {"error": f"unknown source '{source}'", "sources": sorted(NORMALIZERS)})
+        require_write_token(request)
+        length = request.headers.get("content-length")
+        if length and length.isdigit() and int(length) > MAX_INGEST_BYTES:
+            raise HTTPException(413, {"error": f"payload larger than {MAX_INGEST_BYTES} bytes"})
+        try:
+            pages = normalizer(payload)
+        except IngestError as exc:
+            raise HTTPException(422, {"error": str(exc)})
+        except Exception as exc:  # noqa: BLE001
+            raise _fail(422, "could not parse the webhook payload", exc)
+
+        limiter = app.state.ask_limiter
+        client = _client_key(request, settings.trust_proxy)
+        out: list[dict] = []
+        duplicates = 0
+        for page in pages:
+            duplicate, seen = app.state.ingest_dedupe.check(page.dedupe_key)
+            duplicates += int(duplicate)
+            row = dict(page.to_dict(), duplicate=duplicate, seen_count=seen)
+            if answer and not duplicate and page.firing:
+                if not page.engineer:
+                    row["skipped"] = "the payload names no engineer; add an engineer/oncall/owner label"
+                else:
+                    wait = limiter.check(client)
+                    if wait:
+                        raise HTTPException(
+                            429,
+                            {"error": "rate limit reached, retry later", "retry_after_seconds": wait},
+                            headers={"Retry-After": str(wait)},
+                        )
+                    try:
+                        row["answer"] = agent.answer(page.alert, page.engineer, page.service or "unknown")
+                    except Exception as exc:  # noqa: BLE001
+                        raise _fail(502, "the page could not be answered", exc)
+            out.append(row)
+        log.info("ingest source=%s pages=%d duplicates=%d answer=%s", source, len(out), duplicates, answer)
+        return {"source": source, "accepted": len(out), "duplicates": duplicates, "pages": out}
 
     @app.get("/")
     def index():
