@@ -1,0 +1,82 @@
+OFFLINE_RUN.txt — plumbing check with fake memory and template LLM, NOT real results
+================================================================================
+Backends: FakeMemory (keyword overlap, OFFLINE/TEST-ONLY, not Hindsight) + OfflineLLM (string template, not Groq).
+These outputs only show that the code paths run end to end. No Hindsight server and no Groq model were called.
+Do not quote any number below as a result. Only a live run against Hindsight + Groq produces real numbers.
+Note: the eval and learning curve below score the template, which copies incident IDs from recalled text, so 1.0 is expected and meaningless.
+Generated: 2026-11-09T00:01:47+00:00   Python 3.12.15
+
+$ RECURRENCE_OFFLINE=1 python -m recurrence.seed --offline
+Retained 31 memories into bank 'recurrence-tamarind-sre' via backend 'fake-offline'.
+
+$ RECURRENCE_OFFLINE=1 python -m scripts.learning_curve --offline
+
+===== Interaction 1 · 2026-10-20T19:50:00+05:30 =====
+recalled 0 memories, 0 preferences
+ANSWER:
+[offline template, no LLM]
+Generic triage (no memory):
+1. Check recent deploys and roll back if one lines up with the alert.
+2. Check dashboards for error rate, latency and saturation.
+3. Restart unhealthy pods if errors persist.
+4. Scale out if CPU or connection usage is high.
+5. Escalate to the service owner.
+Outcome retained.
+
+===== Interaction 2 · 2026-10-24T10:05:00+05:30 =====
+Engineer taught a preference -> retained.
+
+===== Interaction 3 · 2026-10-28T20:15:00+05:30 =====
+recalled 3 memories, 1 preferences
+  - (8 days ago) On 2026-10-20T19:50+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
+  - (8 days ago) Incident INC-LIVE-10201950 on payments-api, 2026-10-20T19:50+05:30, on-call Arjun Mehta: 502s during evening p
+  - (8 days ago) During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api
+ANSWER:
+[offline template, no LLM]
+This looks like a repeat of INC-LIVE-10201950.
+Step by step, with a check after each step (per your preference).
+Do NOT repeat: During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
+Outcome retained.
+
+===== Interaction 4 · 2026-11-03T09:30:00+05:30 =====
+recalled 5 memories, 1 preferences
+  - (13 days ago) On 2026-10-20T19:50+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
+  - (13 days ago) Incident INC-LIVE-10201950 on payments-api, 2026-10-20T19:50+05:30, on-call Arjun Mehta: 502s during evening p
+  - (13 days ago) During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api
+ANSWER:
+[offline template, no LLM]
+This looks like a repeat of INC-LIVE-10201950, INC-LIVE-10282015.
+Step by step, with a check after each step (per your preference).
+Do NOT repeat: During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
+Outcome retained.
+
+===== Interaction 5 · 2026-11-09T19:47:00+05:30 =====
+recalled 8 memories, 1 preferences
+  - (19 days ago) On 2026-10-20T19:50+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
+  - (11 days ago) On 2026-10-28T20:15+05:30 Recurrence advised Arjun Mehta on a payments-api page ('HighErrorRate: payments-api 
+  - (19 days ago) Incident INC-LIVE-10201950 on payments-api, 2026-10-20T19:50+05:30, on-call Arjun Mehta: 502s during evening p
+ANSWER:
+[offline template, no LLM]
+This looks like a repeat of INC-LIVE-10201950, INC-LIVE-10282015, INC-LIVE-11030930.
+Step by step, with a check after each step (per your preference).
+Do NOT repeat: During INC-LIVE-10201950 on payments-api this did NOT work and should not be repeated: restarting payments-api pods; scaling HPA
+
+$ RECURRENCE_OFFLINE=1 python -m evals.before_after --offline
+{
+  "backend": {
+    "memory": "fake-offline",
+    "llm": "offline-template"
+  },
+  "n": 5,
+  "summary": {
+    "recall_hit_off": 0.0,
+    "recall_hit_on": 1.0,
+    "answer_cites_off": 0.0,
+    "answer_cites_on": 1.0
+  }
+}
+wrote /workspace/work/hwb4/kit/prototype/evals/results_fake-offline_offline-template.json
+
+$ python -m pytest -q
+...................................                                      [100%]
+35 passed in 2.23s

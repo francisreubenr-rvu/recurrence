@@ -1,0 +1,21 @@
+# Self-hosted Hindsight (API on :8888, control-plane UI on :9999) using Groq as its LLM.
+# Usage:  cp .env.example .env  # fill GROQ_API_KEY / HINDSIGHT_API_LLM_API_KEY
+#         docker compose up -d
+# Env var names follow Hindsight's .env.example (HINDSIGHT_API_LLM_PROVIDER / _API_KEY / _MODEL).
+services:
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: recurrence-hindsight
+    restart: unless-stopped
+    ports:
+      - "8888:8888"   # API  -> HINDSIGHT_API_URL=http://localhost:8888
+      - "9999:9999"   # UI   -> http://localhost:9999
+    environment:
+      HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER:-groq}
+      HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:?set HINDSIGHT_API_LLM_API_KEY in .env (your Groq key)}
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-openai/gpt-oss-120b}
+    volumes:
+      - hindsight-data:/home/hindsight/.pg0   # embedded Postgres data survives restarts
+
+volumes:
+  hindsight-data:

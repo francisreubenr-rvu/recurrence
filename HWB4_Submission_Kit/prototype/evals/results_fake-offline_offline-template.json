@@ -1,0 +1,67 @@
+{
+  "n": 5,
+  "summary": {
+    "recall_hit_off": 0.0,
+    "recall_hit_on": 1.0,
+    "answer_cites_off": 0.0,
+    "answer_cites_on": 1.0
+  },
+  "rows": [
+    {
+      "id": "DEMO-1",
+      "expected": [
+        "INC-2087",
+        "INC-2041"
+      ],
+      "answer_cites_off": false,
+      "recall_hit_off": false,
+      "answer_cites_on": true,
+      "recall_hit_on": true
+    },
+    {
+      "id": "DEMO-2",
+      "expected": [
+        "INC-2031"
+      ],
+      "answer_cites_off": false,
+      "recall_hit_off": false,
+      "answer_cites_on": true,
+      "recall_hit_on": true
+    },
+    {
+      "id": "DEMO-3",
+      "expected": [
+        "INC-2052"
+      ],
+      "answer_cites_off": false,
+      "recall_hit_off": false,
+      "answer_cites_on": true,
+      "recall_hit_on": true
+    },
+    {
+      "id": "DEMO-4",
+      "expected": [
+        "INC-2058"
+      ],
+      "answer_cites_off": false,
+      "recall_hit_off": false,
+      "answer_cites_on": true,
+      "recall_hit_on": true
+    },
+    {
+      "id": "DEMO-5",
+      "expected": [
+        "INC-2066"
+      ],
+      "answer_cites_off": false,
+      "recall_hit_off": false,
+      "answer_cites_on": true,
+      "recall_hit_on": true
+    }
+  ],
+  "backend": {
+    "memory": "fake-offline",
+    "llm": "offline-template"
+  },
+  "ran_at": "2026-11-09T00:01:47+00:00"
+}
