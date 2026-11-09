@@ -141,8 +141,8 @@ output instead of crashing ([`recurrence/llm.py`](recurrence/llm.py)).
 | `data/incidents.json` | Synthetic incident history: 12 incidents, dead ends, preferences, service facts |
 | `evals/` | Before/after evaluation (memory off vs on) and its output |
 | `scripts/` | Learning curve from an empty bank (interaction 1 to 5) |
-| `tests/` | 35 pytest tests; no network or keys needed |
-| `docs/` | Offline plumbing-run log and internal submission notes |
+| `tests/` | pytest suite; no network or keys needed |
+| `docs/` | Offline plumbing-run log, deployment guide, internal submission notes |
 | `content/` | Article, LinkedIn, and Reddit drafts (unpublished; not part of the app) |
 | `video/` | Demo video script, shot list, thumbnail brief, upload copy |
 | `run.sh` | Short commands for test, offline, seed, serve, eval, curve |
@@ -250,7 +250,8 @@ python -m pytest -q
 - `tests/test_agent.py`: memory on vs off, memory down, LLM down, resolve, preference learned then used.
 - `tests/test_llm.py`: Groq error handling with a mocked client: `tool_use_failed` → fallback model → no-tools
   answer, connection errors, malformed tool args, tool exceptions, max tool rounds, `<think>` stripping.
-- `tests/test_server.py`: FastAPI `TestClient` on `/health`, `/api/ask` (memory on/off), validation, other routes.
+- `tests/test_server.py`: FastAPI `TestClient` on `/health`, `/api/state`, `/api/ask` (memory on/off), validation,
+  other routes, and the offline-only admin reset.
 
 `python -m evals.before_after` runs five demo alerts with memory off and on and reports, per alert, whether the
 expected incident ID appears in the recalled memories and in the answer. `python -m scripts.learning_curve` walks one
@@ -259,6 +260,21 @@ engineer through five pages from an empty bank, retaining the real outcome after
 [`docs/offline_run.txt`](docs/offline_run.txt) holds the output of the offline seed, learning curve and eval. It is a
 plumbing check with fake memory and a template LLM, **not** a result. No live-run numbers are published in this
 repository yet.
+
+---
+
+## Deploy
+
+[`docs/DEPLOY.md`](docs/DEPLOY.md) has the exact Vercel and container layouts and, more importantly, what each one can
+honestly claim.
+
+| Target | State |
+|---|---|
+| Vercel Python function | Stateless. Every cold start and instance has its own store, so the deployed demo runs `RECURRENCE_OFFLINE=1` with synthetic data and template answers. |
+| Render or any single-process container (`Dockerfile`, `render.yaml`) | One always-on process, so memory survives for the life of the instance and live Hindsight plus Groq work. |
+
+`GET /api/state` reports how many memories the process answering the request currently holds, which is the honest
+answer to "is this instance warm". `POST /api/admin/reset` re-seeds the offline store and is refused in live mode.
 
 ---
 

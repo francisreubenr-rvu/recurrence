@@ -78,6 +78,37 @@ def create_app(agent: RecurrenceAgent | None = None, settings: Settings | None =
             "alerts": data["demo_alerts"],
         }
 
+    @app.get("/api/state")
+    def state():
+        """How much this process actually remembers.
+
+        On a serverless deploy every instance has its own store, so this is the
+        honest way to see whether the instance answering you is warm or fresh.
+        """
+        items = getattr(agent.memory, "items", None)
+        return {
+            "memory": agent.memory.name,
+            "llm": agent.llm.name,
+            "mode": "offline" if settings.offline else "live",
+            "memories_held": len(items) if items is not None else None,
+            "process_state": items is not None,
+        }
+
+    @app.post("/api/admin/reset")
+    def reset():
+        """Re-seed the offline demo store. Refused in live mode.
+
+        Live mode talks to a real Hindsight bank; wiping it from an HTTP route
+        would destroy other engineers' memory, so that stays a CLI operation.
+        """
+        if not settings.offline:
+            raise HTTPException(409, "reset is only available in offline demo mode")
+        if not hasattr(agent.memory, "items"):
+            raise HTTPException(409, f"the {agent.memory.name} backend has no resettable store")
+        agent.memory.items.clear()
+        n = seed(agent.memory)
+        return {"reseeding": True, "memories_held": len(agent.memory.items), "seeded": n}
+
     @app.post("/api/ask")
     def ask(body: AskIn):
         return agent.answer(body.alert, body.engineer, body.service, body.memory_on, _now(body.now))

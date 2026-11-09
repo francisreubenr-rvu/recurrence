@@ -1,0 +1,10 @@
+[project]
+name = "recurrence"
+version = "0.1.0"
+description = "On-call agent that remembers every outage"
+requires-python = ">=3.12"
+
+# Vercel's Python builder reads this to find the ASGI app. Without it the
+# builder guesses from the filename, and app/server.py is ambiguous.
+[tool.vercel]
+entrypoint = "app.server:app"

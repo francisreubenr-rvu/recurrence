@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: recurrence
+    runtime: docker
+    plan: starter          # free sleeps and drops memory; starter keeps one process warm
+    healthCheckPath: /api/health
+    numInstances: 1        # the offline store is per process, so never scale this out
+    envVars:
+      - key: RECURRENCE_OFFLINE
+        value: "1"
+      - key: RECURRENCE_ASK_RATE_PER_MIN
+        value: "30"

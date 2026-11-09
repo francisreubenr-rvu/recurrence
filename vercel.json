@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "fluid": true,
+  "functions": {
+    "app/server.py": {
+      "maxDuration": 60,
+      "includeFiles": ["data/**", "app/static/**"]
+    }
+  }
+}
