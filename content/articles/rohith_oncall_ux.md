@@ -102,7 +102,7 @@ We kept it to four short fields on purpose. A form that asks for a full postmort
 4. Put the learning step on the same screen as the answer, and keep it short.
 5. Show failures (memory down, tool errors) instead of quietly answering worse.
 
-For how the memory side works, the [Hindsight docs](https://hindsight.vectorize.io/) are the place to start, and Vectorize's write-up on [agent memory](https://vectorize.io/what-is-agent-memory) explains the idea well. Our code: <REPO_URL>.
+For how the memory side works, the [Hindsight docs](https://hindsight.vectorize.io/) are the place to start, and Vectorize's write-up on [agent memory](https://vectorize.io/what-is-agent-memory) explains the idea well. Our code: https://github.com/francisreubenr-rvu/recurrence.
 
 In our live tests, the memory-on answer named the right past incident on <RESULT_FROM_EVAL> of our demo pages (see Gopreeth's post for how we measured it).
 

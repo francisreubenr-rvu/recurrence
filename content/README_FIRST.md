@@ -22,7 +22,7 @@ These are **drafts**, written quickly so nobody starts from a blank page. They a
 - `<RESULT_FROM_EVAL>`: numbers from the **live** run only (Hindsight + Groq). Francis sends them round about 09:30 IST. **Never invent a number. Never quote the offline/fake mode.** If a number isn't available, delete the sentence.
 - "Memory off / memory on" example answers are **abridged sketches**. Replace them with the real output from the live run.
 - `[SCREENSHOT: ...]`: take the screenshot described and insert it; delete the marker.
-- `<REPO_URL>`, `<ARTICLE_URL>`: the real links.
+- `https://github.com/francisreubenr-rvu/recurrence`, `<ARTICLE_URL>`: the real links.
 - `<CODE_IN_LINE: ...>`: one honest sentence mentioning or tagging Code.in (the guide says to tag Code.in on LinkedIn **and articles**). Don't claim you used it if you didn't.
 - Remove the `<!-- DRAFT ... -->` comment at the top.
 

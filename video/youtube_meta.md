@@ -28,7 +28,7 @@ Built with:
 - Groq (gpt-oss-120b, qwen3-32b fallback)
 - Code.in
 
-Code: <REPO_URL>
+Code: https://github.com/francisreubenr-rvu/recurrence
 
 Articles from the team:
 - Architecture (Francis Reuben R): <ARTICLE_URL_FRANCIS>

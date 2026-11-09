@@ -124,6 +124,6 @@ On our five demo alerts, the expected past incident was named in <RESULT_FROM_EV
 4. Treat every memory and model call as something that can fail, and degrade to "here is what I remember" rather than an error.
 5. Store what didn't work as its own memory. Aryan's post covers why.
 
-If you are building agents that should get better with use, read Vectorize's piece on [what agent memory actually is](https://vectorize.io/what-is-agent-memory) and try [Hindsight](https://github.com/vectorize-io/hindsight). The code for Recurrence is at <REPO_URL>.
+If you are building agents that should get better with use, read Vectorize's piece on [what agent memory actually is](https://vectorize.io/what-is-agent-memory) and try [Hindsight](https://github.com/vectorize-io/hindsight). The code for Recurrence is at https://github.com/francisreubenr-rvu/recurrence.
 
 <CODE_IN_LINE: one honest sentence tagging Code.in, e.g. what you used it for. If you did not use it, write a neutral mention rather than claiming you did.>

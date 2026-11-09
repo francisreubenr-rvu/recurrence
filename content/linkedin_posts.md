@@ -2,7 +2,7 @@
 
 Rules (from the official content guide): under **800 characters**, no hashtags or links in the first two lines, 3–5 hashtags on the **last line only** (allowed: #AIAgents #AI #Hindsight #AgentMemory #AIMemory #LLM), **repo link in the post body**, positive mention of Hindsight, tag **Code.in**. Never name the event type in the post, comments or hashtags.
 
-Character counts below were computed with Python `len()` on the exact text in each code block. "With URL" replaces `<REPO_URL>` with a 54-character stand-in (`https://github.com/<github-user>/recurrence-oncall-memory`). Re-count after you paste the real URL and rewrite in your own voice (`python3 -c "print(len(open('post.txt').read()))"`). LinkedIn counts a little differently (line breaks, and the @mention turns into the page name), so keep about 30 characters of headroom.
+Character counts below were computed with Python `len()` on the exact text in each code block. "With URL" replaces `https://github.com/francisreubenr-rvu/recurrence` with a 54-character stand-in (`https://github.com/<github-user>/recurrence-oncall-memory`). Re-count after you paste the real URL and rewrite in your own voice (`python3 -c "print(len(open('post.txt').read()))"`). LinkedIn counts a little differently (line breaks, and the @mention turns into the page name), so keep about 30 characters of headroom.
 
 **How to tag Code.in:** type `@Code` in the LinkedIn editor and pick the Code.in company page from the dropdown so it becomes a real mention. If the page doesn't come up, leave `Code.in` as plain text. **Only say you built with it if you actually used it**; otherwise change the line to something true.
 
@@ -30,7 +30,7 @@ What I'd copy:
 
 Hindsight agent memory made this a small layer, not a project.
 
-Code: <REPO_URL>
+Code: https://github.com/francisreubenr-rvu/recurrence
 Built with help from @Code.in
 
 #AIAgents #AgentMemory #Hindsight #LLM
@@ -57,7 +57,7 @@ After: "Do NOT restart pods or scale the HPA. Both made INC-2087 worse."
 
 Choosing Hindsight agent memory let us model "what not to do" in an afternoon.
 
-Repo: <REPO_URL>
+Repo: https://github.com/francisreubenr-rvu/recurrence
 Thanks @Code.in
 
 #AIAgents #AgentMemory #Hindsight #AIMemory
@@ -85,7 +85,7 @@ Tips:
 - Run memory-off first
 - Never quote offline numbers
 
-Results + code: <REPO_URL>
+Results + code: https://github.com/francisreubenr-rvu/recurrence
 With @Code.in
 
 #AIAgents #Hindsight #AgentMemory #LLM
@@ -109,7 +109,7 @@ Recurrence is an on-call agent built on Hindsight agent memory. UX choices that 
 Before: restart pods, scale out.
 After: repeat of INC-2087; kill the lock, roll back, don't scale.
 
-Code: <REPO_URL>
+Code: https://github.com/francisreubenr-rvu/recurrence
 Thanks @Code.in
 
 #AIAgents #AgentMemory #Hindsight #AI

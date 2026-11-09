@@ -18,7 +18,7 @@ We do not have a copy of the form's exact questions. When you open it, check eac
 | Your article URL | The article you published today |
 | Your LinkedIn post URL | The post you published today (use the post's own link, not your profile) |
 | Team name | `<TEAM_NAME>` |
-| Project repo | `<REPO_URL>` |
+| Project repo | `https://github.com/francisreubenr-rvu/recurrence` |
 | YouTube video | `<YOUTUBE_URL>` |
 | Your role on the project | One honest line about what *you* did |
 

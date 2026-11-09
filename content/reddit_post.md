@@ -24,7 +24,7 @@
 >
 > Two open questions we haven't solved: (1) how to stop the agent's own unconfirmed advice, which we also retain, from being trusted like a confirmed fix later, and (2) how to measure "avoided a known dead end" without an LLM judge. If you've dealt with either, I'd like to hear how.
 >
-> Code is here if you want to look: <REPO_URL>
+> Code is here if you want to look: https://github.com/francisreubenr-rvu/recurrence
 
 ## Tone rules for replies
 

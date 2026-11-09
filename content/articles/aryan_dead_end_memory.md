@@ -114,6 +114,6 @@ Across our demo alerts, the dead-end memory appeared in recall for <RESULT_FROM_
 4. Recall preferences separately from incidents, with a small token budget.
 5. Keep the number of memory kinds small; each one is something the model has to interpret.
 
-If you want the background on why this kind of memory matters, Vectorize's explainer on [agent memory](https://vectorize.io/what-is-agent-memory) is a good start, and [Hindsight is open source](https://github.com/vectorize-io/hindsight). Our code is at <REPO_URL>.
+If you want the background on why this kind of memory matters, Vectorize's explainer on [agent memory](https://vectorize.io/what-is-agent-memory) is a good start, and [Hindsight is open source](https://github.com/vectorize-io/hindsight). Our code is at https://github.com/francisreubenr-rvu/recurrence.
 
 <CODE_IN_LINE: one honest sentence tagging Code.in. If you did not use it, write a neutral mention rather than claiming you did.>

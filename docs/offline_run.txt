@@ -1,4 +1,4 @@
-OFFLINE_RUN.txt — plumbing check with fake memory and template LLM, NOT real results
+offline_run.txt: plumbing check with fake memory and template LLM, NOT real results
 ================================================================================
 Backends: FakeMemory (keyword overlap, OFFLINE/TEST-ONLY, not Hindsight) + OfflineLLM (string template, not Groq).
 These outputs only show that the code paths run end to end. No Hindsight server and no Groq model were called.

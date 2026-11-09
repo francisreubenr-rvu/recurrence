@@ -14,7 +14,7 @@ Record each shot as its own clip; it makes editing faster. 1080p minimum, 30 fps
 | 8 | Learning curve | Terminal | 0:30 | Interaction 1 header + generic answer; interaction 5 header + recalled memories + answer | Font 18pt or larger; cut the waiting time |
 | 9 | Code glimpse | Editor | 0:15 | `seed.py` dead-end block; `memory.py` `recall` | Dark theme, big font |
 | 10 | Eval numbers (optional) | Terminal | 0:10 | Summary JSON from the live run | Only if live numbers exist |
-| 11 | Outro | Talking head + end card | 0:20 | `<REPO_URL>`, github.com/vectorize-io/hindsight | End card 5 seconds or more |
+| 11 | Outro | Talking head + end card | 0:20 | `https://github.com/francisreubenr-rvu/recurrence`, github.com/vectorize-io/hindsight | End card 5 seconds or more |
 
 Total ≈ 4:20 before trimming. If it runs over 4:30, cut shot 9 or 10 first.
 

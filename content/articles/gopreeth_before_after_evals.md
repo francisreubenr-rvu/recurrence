@@ -109,6 +109,6 @@ I want to be explicit about this, because eval write-ups often aren't.
 4. Run the no-memory condition first if the memory-on condition writes to memory.
 5. Put the backend name in the results filename so offline numbers never get quoted.
 
-[Hindsight's documentation](https://hindsight.vectorize.io/) covers the retain/recall/reflect APIs the harness uses, and Vectorize has a clear explainer on [what agent memory is and why it matters](https://vectorize.io/what-is-agent-memory). The eval code is in our repo: <REPO_URL>.
+[Hindsight's documentation](https://hindsight.vectorize.io/) covers the retain/recall/reflect APIs the harness uses, and Vectorize has a clear explainer on [what agent memory is and why it matters](https://vectorize.io/what-is-agent-memory). The eval code is in our repo: https://github.com/francisreubenr-rvu/recurrence.
 
 <CODE_IN_LINE: one honest sentence tagging Code.in. If you did not use it, write a neutral mention rather than claiming you did.>

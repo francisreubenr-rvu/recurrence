@@ -4,13 +4,12 @@
 
 Team: Aryan Dubey, Francis Reuben R, Gopreeth Saharsh, Rohith AD. Team name: `<TEAM_NAME>` (still to be decided; it goes on the final form).
 
-Folder map:
+Folder map (as reorganised for the public repository):
 
 | Folder | What is in it |
 |---|---|
-| `prototype/` | The code. Another person is editing it right now; this kit does not touch it. |
-| `start/` | This file: plan, rubric, checklist, rule conflicts. |
-| `forms/` | Final form answers (`final_form_answers.md`) and what each person fills in the Profile Review Form (`profile_review_note.md`). |
+| repository root | The code: `recurrence/`, `app/`, `evals/`, `scripts/`, `tests/`, `data/`. Another person was editing the prototype; this kit did not touch the code. |
+| `docs/internal/` | This file: plan, rubric, checklist, rule conflicts, form answers, profile review note. |
 | `content/` | `README_FIRST.md`, four article drafts, four LinkedIn posts, one Reddit post. |
 | `video/` | Script, shot list, thumbnail brief, YouTube title/description/tags. |
 
@@ -46,7 +45,7 @@ Owners: **A-team (code and submission)** = Francis + `<MEMBER_B>` (suggested: Go
 |---|---|---|---|
 | 06:00–06:30 | All four | Read this file and `content/README_FIRST.md`. Agree on the team name and the A-team / V-team split. Everyone downloads **Band AI desktop**. | Team name written here; owners confirmed |
 | 06:30–07:30 | Francis | Hindsight Cloud account (ui.hindsight.vectorize.io), apply promo credits in Billing, create API key. Groq API key. Put both in `.env` only, never in git. | `GET /api/health` shows `memory: hindsight`, `llm: groq` |
-| 06:30–07:30 | `<MEMBER_B>` | Create the public GitHub repo, add `.gitignore` (`.env`), push the current prototype. | Repo URL pasted into `forms/final_form_answers.md` |
+| 06:30–07:30 | `<MEMBER_B>` | Create the public GitHub repo, add `.gitignore` (`.env`), push the current prototype. | Repo URL pasted into `docs/internal/final_form_answers.md` |
 | 06:30–08:00 | V-team | Read `video/script.md`, run the app locally in offline mode to rehearse the clicks, set up OBS/Loom at 1080p with large fonts. | One rehearsal recorded (throwaway) |
 | 07:30–09:00 | Francis + `<MEMBER_B>` | Live run: `python -m recurrence.seed`, then `python -m evals.before_after --no-seed`, then `python -m scripts.learning_curve`. Save outputs and screenshots. | Real numbers available for every `<RESULT_FROM_EVAL>` |
 | 09:00–09:30 | Francis | Send real eval numbers and screenshots to everyone (team chat). | Everyone has the numbers |
@@ -61,8 +60,8 @@ Owners: **A-team (code and submission)** = Francis + `<MEMBER_B>` (suggested: Go
 | 17:00–19:30 | Each person | Publish your LinkedIn post (repo link in the post, Code.in tagged). First comment: article URL. Second comment: the Hindsight GitHub link. See the rule conflicts below. | Post + both comments live |
 | by 20:00 | All four | **Article + LinkedIn post live for every member.** | Four article URLs + four post URLs collected in the form file |
 | 19:30–20:30 | One person (suggested: Rohith) | Reddit link post (`content/reddit_post.md`). Check the subreddit's rules first. | Reddit URL collected |
-| 20:00–21:30 | All four | Profile Review Forms (`forms/profile_review_note.md`), each person their own. | Each person confirms submitted |
-| 21:30–22:30 | Francis | Fill in the final form from `forms/final_form_answers.md`. Second person reads every link back. | All fields filled, not yet submitted |
+| 20:00–21:30 | All four | Profile Review Forms (`docs/internal/profile_review_note.md`), each person their own. | Each person confirms submitted |
+| 21:30–22:30 | Francis | Fill in the final form from `docs/internal/final_form_answers.md`. Second person reads every link back. | All fields filled, not yet submitted |
 | 22:30–23:00 | Francis + one reviewer | Run the pre-submit checklist below and submit. | **Submitted by 23:00 IST** |
 | 23:00–23:59 | Buffer | Fix anything broken. Do not start new work. | |
 

@@ -10,7 +10,7 @@ Before you paste a link, open it in a logged-out or incognito window. If the for
 | Team name | `<TEAM_NAME>` |
 | Team member names | Aryan Dubey; Francis Reuben R; Gopreeth Saharsh; Rohith AD |
 | Project name | Recurrence: the on-call agent that remembers every outage |
-| GitHub repository | `<REPO_URL>` |
+| GitHub repository | `https://github.com/francisreubenr-rvu/recurrence` |
 | LinkedIn post(s) | Aryan: `<LINKEDIN_POST_URL_ARYAN>`<br>Francis: `<LINKEDIN_POST_URL_FRANCIS>`<br>Gopreeth: `<LINKEDIN_POST_URL_GOPREETH>`<br>Rohith: `<LINKEDIN_POST_URL_ROHITH>` |
 | Article(s) | Aryan: `<ARTICLE_URL_ARYAN>`<br>Francis: `<ARTICLE_URL_FRANCIS>`<br>Gopreeth: `<ARTICLE_URL_GOPREETH>`<br>Rohith: `<ARTICLE_URL_ROHITH>` |
 | YouTube video | `<YOUTUBE_URL>` |
