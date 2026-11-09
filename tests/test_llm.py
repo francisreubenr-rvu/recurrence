@@ -110,3 +110,56 @@ def test_parse_tool_args_variants():
     with pytest.raises(ValueError):
         parse_tool_args("[1,2]")
     assert strip_reasoning(None) == ""
+
+
+def test_strip_reasoning_unclosed_think_drops_the_tail():
+    assert strip_reasoning("<think>secret reasoning") == ""
+    assert strip_reasoning("Before <think>secret") == "Before"
+    assert strip_reasoning("<think>a</think> Answer") == "Answer"
+
+
+def test_run_stops_at_the_overall_deadline():
+    class Clock:
+        def __init__(self):
+            self.t = 0.0
+
+        def __call__(self):
+            return self.t
+
+        def sleep(self, seconds):
+            self.t += seconds
+
+    clock = Clock()
+
+    class SlowClient:
+        def __init__(self):
+            self.calls = 0
+            self.chat = SimpleNamespace(completions=SimpleNamespace(create=self.create))
+
+        def create(self, **kwargs):
+            self.calls += 1
+            clock.t += 20.0
+            raise openai.APITimeoutError(request=REQ)
+
+    client = SlowClient()
+    g = GroqLLM("k", "u", "m1", "m2", client=client, deadline_seconds=45.0, clock=clock, sleep=clock.sleep)
+    with pytest.raises(LLMUnavailable):
+        g.run(MSGS, TOOLS, lambda n, a: "{}")
+    assert client.calls <= 3, f"deadline should bound attempts, got {client.calls}"
+
+
+def test_missing_tool_argument_is_not_reported_as_unknown_tool():
+    def execute(name, args):
+        return args["query"]
+
+    trace = []
+    out = safe_execute(execute, "recall_memory", "{}", trace)
+    assert "missing required argument 'query'" in out
+    assert trace[-1]["event"] == "missing_tool_arg"
+
+    def unknown(name, args):
+        raise KeyError(name)  # the real executor contract for an unrecognised tool
+
+    out = safe_execute(unknown, "nope", "{}", trace)
+    assert "unknown tool 'nope'" in out
+    assert trace[-1]["event"] == "unknown_tool"

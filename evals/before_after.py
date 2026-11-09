@@ -44,17 +44,22 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--no-seed", action="store_true", help="bank already seeded")
+    ap.add_argument("--bank-suffix", default=None,
+                    help="suffix the bank id so repeated live runs do not append into the same bank")
     args = ap.parse_args()
     s = Settings.from_env(offline=args.offline)
+    if args.bank_suffix:
+        s.bank_id = f"{s.bank_id}-{args.bank_suffix}"
     agent = RecurrenceAgent(build_memory(s), build_llm(s))
     if not args.no_seed:
         seed(agent.memory)
     res = run(agent, load_data()["demo_alerts"])
     res["backend"] = {"memory": agent.memory.name, "llm": agent.llm.name}
+    res["bank_id"] = s.bank_id
     res["ran_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
     out = Path(__file__).parent / f"results_{agent.memory.name}_{agent.llm.name}.json"
     out.write_text(json.dumps(res, indent=2))
-    print(json.dumps({"backend": res["backend"], "n": res["n"], "summary": res["summary"]}, indent=2))
+    print(json.dumps({"backend": res["backend"], "bank_id": res["bank_id"], "n": res["n"], "summary": res["summary"]}, indent=2))
     print(f"wrote {out}")
 
 
